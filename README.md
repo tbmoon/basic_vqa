@@ -1,5 +1,5 @@
 # basic_vqa
-Pytorch implementation of the paper: "VQA: Visual Question Answering (https://arxiv.org/pdf/1505.00468.pdf)".
+Pytorch implementation of the paper - VQA: Visual Question Answering (https://arxiv.org/pdf/1505.00468.pdf).
 
 ## Usage 
 
