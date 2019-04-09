@@ -8,7 +8,7 @@ Pytorch implementation of the paper - VQA: Visual Question Answering (https://ar
 $ git clone https://github.com/tbmoon/basic_vqa.git
 ```
 
-#### 2. Download and unzip the dataset
+#### 2. Download and unzip the dataset from VQA official url: https://visualqa.org/download.html
 
 ```bash
 $ cd basic_vqa/datasets
