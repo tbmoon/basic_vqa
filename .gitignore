@@ -1,2 +1,4 @@
-# ignore all files in the build/ directory
+# ignore all files in the datasets/ directory
 datasets/
+
+utils/__pycache__/
