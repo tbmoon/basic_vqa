@@ -9,13 +9,13 @@ from utils import text_processing
 
 class VqaDataset(data.Dataset):
 
-    def __init__(self, input_dir, input_vqa, qst_length=30, transform=None):
+    def __init__(self, input_dir, input_vqa, max_qst_length=30, transform=None):
         
         self.input_dir = input_dir
         self.vqa = np.load(input_dir+'/'+input_vqa)
         self.vocab_qst = text_processing.VocabDict(input_dir+'/vocab_questions.txt')
         self.vocab_ans = text_processing.VocabDict(input_dir+'/vocab_answers.txt')
-        self.qst_length = qst_length
+        self.max_qst_length = max_qst_length
         self.load_ans = ('valid_answers' in self.vqa[0]) and (self.vqa[0]['valid_answers'] is not None)
         self.transform = transform
                 
@@ -25,13 +25,13 @@ class VqaDataset(data.Dataset):
         vqa = self.vqa
         vocab_qst = self.vocab_qst
         vocab_ans = self.vocab_ans
-        qst_length = self.qst_length
+        max_qst_length = self.max_qst_length
         transform = self.transform
         load_ans = self.load_ans
         
         image = vqa[idx]['image_path']
         image = io.imread(image)
-        qst2idc = [vocab_qst.word2idx('<pad>')] * qst_length
+        qst2idc = [vocab_qst.word2idx('<pad>')] * max_qst_length
         qst2idc[:len(vqa[idx]['question_tokens'])] = [vocab_qst.word2idx(w) for w in vqa[idx]['question_tokens']]
         sample = {'image': image, 'question': qst2idc}
         if load_ans:
@@ -49,11 +49,11 @@ class VqaDataset(data.Dataset):
         return len(self.vqa)
 
 
-def get_loader(input_dir, input_vqa, qst_length, transform, batch_size, shuffle, num_workers):
+def get_loader(input_dir, input_vqa, max_qst_length, transform, batch_size, shuffle, num_workers):
     
     vqa_dataset = VqaDataset(input_dir=input_dir,
                              input_vqa=input_vqa,
-                             qst_length=qst_length,
+                             max_qst_length=max_qst_length,
                              transform=transform)
     
     data_loader = torch.utils.data.DataLoader(dataset=vqa_dataset,
