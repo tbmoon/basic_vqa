@@ -31,7 +31,7 @@ class VqaDataset(data.Dataset):
         
         image = vqa[idx]['image_path']
         image = io.imread(image)
-        qst2idc = [vocab_qst.word2idx('<pad>')] * max_qst_length
+        qst2idc = np.array([vocab_qst.word2idx('<pad>')] * max_qst_length)
         qst2idc[:len(vqa[idx]['question_tokens'])] = [vocab_qst.word2idx(w) for w in vqa[idx]['question_tokens']]
         sample = {'image': image, 'question': qst2idc}
         if load_ans:
