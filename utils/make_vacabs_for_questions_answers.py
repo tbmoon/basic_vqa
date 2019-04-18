@@ -23,15 +23,17 @@ def make_vocab_questions(input_dir):
             set_question_length[iquestion] = len(words)
         question_length += set_question_length
 
-    vocab_set.add('<unk>')
     vocab_list = list(vocab_set)
     vocab_list.sort()
+    vocab_list.insert(0, '<pad>')
+    vocab_list.insert(1, '<unk>')
     
     with open('../datasets/vocab_questions.txt', 'w') as f:
         f.writelines([w+'\n' for w in vocab_list])
     
     print('Make vocabulary for questions')
-    print('The number of total words of questions: %d' % len(vocab_set))    
+    print('The number of total words of questions: %d' % len(vocab_set))
+    print('Maximum length of question: %d' % np.max(question_length))
 
 
 def make_vocab_answers(input_dir, n_answers):
