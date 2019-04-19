@@ -55,6 +55,8 @@ def main(args):
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
+    batch_step_size = len(data_loader.dataset) / args.batch_size
+    
     for epoch in range(args.num_epochs):
 
         loss_sum = 0.0
@@ -77,10 +79,11 @@ def main(args):
             loss_sum += loss.item()
 
             if isample % 100 == 0:
-                print('Sample {} - Loss: {:.8f}'.format(isample, loss.item()))
+                print('Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
+                      .format(epoch+1, args.num_epochs, isample, int(batch_step_size), loss.item()))
 
-        # Print the average loss (loss per mini-batch)
-        avg_loss = loss_sum / (len(data_loader.dataset) / args.batch_size)
+        # Print the average loss (loss per mini-batch).
+        avg_loss = loss_sum / batch_step_size
         print('Epoch [{}/{}] Loss: {:.8f}'.format(epoch+1, args.num_epochs, avg_loss))
 
         # Log the average loss as an epoch. 
