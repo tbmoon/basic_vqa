@@ -26,8 +26,11 @@ class ImgEncoder(nn.Module):
         """Extract feature vector from image vector.
         """
         with torch.no_grad():
-            img_feature = self.model(image)  # [batch_size, vgg16_fc=4096]
-        img_feature = self.fc(img_feature)   # [batch_size, embed_size]
+            img_feature = self.model(image)                  # [batch_size, vgg16_fc=4096]
+        img_feature = self.fc(img_feature)                   # [batch_size, embed_size]
+
+        l2_norm = img_feature.norm(p=2, dim=1, keepdim=True).detach()
+        img_feature = img_feature.div(l2_norm)               # l2-normalized feature vector
 
         return img_feature
 
@@ -55,6 +58,9 @@ class QstEncoder(nn.Module):
         qst_feature = self.relu(qst_feature)
         qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
 
+        l2_norm = qst_feature.norm(p=2, dim=1, keepdim=True).detach()
+        qst_feature = qst_feature.div(l2_norm)                        # l2-normalized feature vector
+        
         return qst_feature
 
 
