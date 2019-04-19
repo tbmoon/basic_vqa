@@ -88,7 +88,7 @@ if __name__ == '__main__':
                         help='number of layers of RNN(LSTM).')
     parser.add_argument('--hidden_size', type=int, default=512,
                         help='hidden_size.')
-    parser.add_argument('--learning_rate', type=float, default=0.00001,
+    parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='learning rate for training')
     parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs.')
