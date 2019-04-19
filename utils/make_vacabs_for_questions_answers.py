@@ -52,7 +52,7 @@ def make_vocab_answers(input_dir, n_answers):
                 
     answers = sorted(answers, key=answers.get, reverse=True)
     assert('<unk>' not in answers)
-    top_answers = ['<unk>'] + answers[:n_answers]
+    top_answers = ['<unk>'] + answers[:n_answers-1] # '-1' is due to '<unk>'
     
     with open('../datasets/vocab_answers.txt', 'w') as f:
         f.writelines([w+'\n' for w in top_answers])
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', type=str, default='/run/media/hoosiki/WareHouse3/mtb/datasets/VQA',
                         help='directory for input questions and answers')
-    parser.add_argument('--n_answers', type=int, default=3000,
+    parser.add_argument('--n_answers', type=int, default=1000,
                         help='the number of answers to be kept in vocab')
     args = parser.parse_args()
     main(args)
