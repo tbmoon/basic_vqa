@@ -12,12 +12,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def main(args):
-    
+
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), 
+        transforms.Normalize((0.485, 0.456, 0.406),
                              (0.229, 0.224, 0.225))])
-        
+
     data_loader = get_loader(
         input_dir=args.input_dir,
         input_vqa='train.npy',
@@ -29,7 +29,7 @@ def main(args):
 
     qst_vocab_size = data_loader.dataset.vocab_qst.num_vocab
     ans_vocab_size = data_loader.dataset.vocab_ans.num_vocab
-    
+
     model = VqaModel(
         embed_size=args.embed_size,
         qst_vocab_size=qst_vocab_size,
@@ -40,41 +40,41 @@ def main(args):
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-          
+
     params = list(model.img_encoder.fc.parameters()) \
-           + list(model.qst_encoder.parameters()) \
-           + list(model.fc.parameters())
-    
+        + list(model.qst_encoder.parameters()) \
+        + list(model.fc.parameters())
+
     optimizer = torch.optim.Adam(params, lr=args.learning_rate)
-    
+
     for iepoch in range(args.num_epochs):
-        
+
         loss_sum = 0.0
-        
+
         for isample, sample in enumerate(data_loader):
-                
+
             image = sample['image'].to(device)
             question = sample['question'].to(device)
             answer = sample['answer'].to(device)
-            
+
             prediction = model(image, question)
             loss = criterion(prediction, answer)
-            
+
             model.zero_grad()
             loss.backward()
             optimizer.step()
-            
+
             loss_sum += loss.item()
-            
+
             if isample % 100 == 0:
                 print('isample {} - Loss: {:.8f}'.format(isample, loss.item()))
 
         avg_loss = loss_sum / len(data_loader.dataset)
-        print('Epoch [{}/{}] Loss: {:.8f}'.format(iepoch+1, args.num_epochs, avg_loss))    
-    
-    
+        print('Epoch [{}/{}] Loss: {:.8f}'.format(iepoch+1, args.num_epochs, avg_loss))
+
+
 if __name__ == '__main__':
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', type=str, default='./datasets',
                         help='input directory for visual question answering.')
@@ -97,5 +97,5 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=16,
                         help='number of processes working on cpu.')
     args = parser.parse_args()
-    
+
     main(args)
