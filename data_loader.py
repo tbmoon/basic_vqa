@@ -18,8 +18,7 @@ class VqaDataset(data.Dataset):
         self.max_qst_length = max_qst_length
         self.load_ans = ('valid_answers' in self.vqa[0]) and (self.vqa[0]['valid_answers'] is not None)
         self.transform = transform
-                
-                
+                                
     def __getitem__(self, idx):
         
         vqa = self.vqa
@@ -42,8 +41,7 @@ class VqaDataset(data.Dataset):
             sample['image'] = transform(sample['image'])
             
         return sample
-    
-    
+        
     def __len__(self):
         
         return len(self.vqa)
@@ -51,14 +49,16 @@ class VqaDataset(data.Dataset):
 
 def get_loader(input_dir, input_vqa, max_qst_length, transform, batch_size, shuffle, num_workers):
     
-    vqa_dataset = VqaDataset(input_dir=input_dir,
-                             input_vqa=input_vqa,
-                             max_qst_length=max_qst_length,
-                             transform=transform)
+    vqa_dataset = VqaDataset(
+        input_dir=input_dir,
+        input_vqa=input_vqa,
+        max_qst_length=max_qst_length,
+        transform=transform)
     
-    data_loader = torch.utils.data.DataLoader(dataset=vqa_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=shuffle,
-                                              num_workers=num_workers)
+    data_loader = torch.utils.data.DataLoader(
+        dataset=vqa_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers)
     
     return data_loader

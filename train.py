@@ -18,17 +18,23 @@ def main(args):
         transforms.Normalize((0.485, 0.456, 0.406), 
                              (0.229, 0.224, 0.225))])
         
-    data_loader = get_loader(input_dir=args.input_dir,
-                             input_vqa='train.npy',
-                             max_qst_length=args.max_qst_length,
-                             transform=transform,
-                             batch_size=args.batch_size,
-                             shuffle=False, # True
-                             num_workers=args.num_workers)
+    data_loader = get_loader(
+        input_dir=args.input_dir,
+        input_vqa='train.npy',
+        max_qst_length=args.max_qst_length,
+        transform=transform,
+        batch_size=args.batch_size,
+        shuffle=False, # True
+        num_workers=args.num_workers)
 
-    qst_word_size = data_loader.dataset.vocab_qst.num_vocab
+    qst_vocab_size = data_loader.dataset.vocab_qst.num_vocab
     
-    model = VqaModel(args.embed_size, qst_word_size, args.word_embed_size, args.num_layers, args.hidden_size)
+    model = VqaModel(
+        embed_size=args.embed_size,
+        qst_vocab_size=qst_vocab_size,
+        word_embed_size=args.word_embed_size,
+        num_layers=args.num_layers,
+        hidden_size=args.hidden_size)
 
     criterion = nn.CrossEntropyLoss()
     params = list(model.parameters())
