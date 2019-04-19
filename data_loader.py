@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
-from skimage import io
+from PIL import Image
 from utils import text_processing
 
 
@@ -29,7 +29,7 @@ class VqaDataset(data.Dataset):
         load_ans = self.load_ans
         
         image = vqa[idx]['image_path']
-        image = io.imread(image)
+        image = Image.open(image).convert('RGB')        
         qst2idc = np.array([vocab_qst.word2idx('<pad>')] * max_qst_length)
         qst2idc[:len(vqa[idx]['question_tokens'])] = [vocab_qst.word2idx(w) for w in vqa[idx]['question_tokens']]
         sample = {'image': image, 'question': qst2idc}

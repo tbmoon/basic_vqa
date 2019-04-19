@@ -24,47 +24,46 @@ def main(args):
         max_qst_length=args.max_qst_length,
         transform=transform,
         batch_size=args.batch_size,
-        shuffle=False, # True
+        shuffle=True,
         num_workers=args.num_workers)
 
     qst_vocab_size = data_loader.dataset.vocab_qst.num_vocab
+    ans_vocab_size = data_loader.dataset.vocab_ans.num_vocab
     
     model = VqaModel(
         embed_size=args.embed_size,
         qst_vocab_size=qst_vocab_size,
+        ans_vocab_size=ans_vocab_size,
         word_embed_size=args.word_embed_size,
         num_layers=args.num_layers,
         hidden_size=args.hidden_size)
+    model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    params = list(model.parameters())
+    params = list(model.parameters()) # TO DO: UPDATE THIS
     optimizer = torch.optim.Adam(params, lr=args.learning_rate)
     
     for iepoch in range(args.num_epochs):
         
+        loss_sum = 0.0
+        
         for isample, sample in enumerate(data_loader):
-            
-            if isample == 1:
-                break
                 
-            image = sample['image']
-            question = sample['question']
-            answer = sample['answer']
+            image = sample['image'].to(device)
+            question = sample['question'].to(device)
+            answer = sample['answer'].to(device)
             
-            #print(question)
-            #print(question.shape)
             prediction = model(image, question)
-    
-    
-            # Forward, backward and optimize
-            #features = encoder(images)
-            #outputs = decoder(features, captions, lengths)
-            #loss = criterion(outputs, targets)
-            #decoder.zero_grad()
-            #encoder.zero_grad()
-            #loss.backward()
-            #optimizer.step()
-    
+            loss = criterion(prediction, answer)
+            
+            model.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+            loss_sum += loss.item()
+
+        avg_loss = loss_sum / len(data_loader.dataset)
+        print('Epoch [{}/{}] Loss: {:.8f}'.format(iepoch+1, args.num_epochs, avg_loss))    
     
     
 if __name__ == '__main__':
@@ -74,7 +73,7 @@ if __name__ == '__main__':
                         help='input directory for visual question answering.')
     parser.add_argument('--max_qst_length', type=int, default=30,
                         help='maximum length of question. the length in the VQA dataset = 26.')
-    parser.add_argument('--embed_size', type=int, default=5, #1024
+    parser.add_argument('--embed_size', type=int, default=1024,
                         help='embedding size of feature vector for both image and question.')
     parser.add_argument('--word_embed_size', type=int, default=300,
                         help='embedding size of word used for the input in RNN(LSTM).')
@@ -84,35 +83,12 @@ if __name__ == '__main__':
                         help='hidden_size.')
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='learning rate for training')
-    parser.add_argument('--num_epochs', type=int, default=1, # 100
+    parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs.')
-    parser.add_argument('--batch_size', type=int, default=3, # 8
+    parser.add_argument('--batch_size', type=int, default=8,
                         help='batch_size.')
-    parser.add_argument('--num_workers', type=int, default=0,
+    parser.add_argument('--num_workers', type=int, default=4,
                         help='number of processes working on cpu.')
     args = parser.parse_args()
     
     main(args)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
