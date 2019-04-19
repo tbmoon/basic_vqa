@@ -14,7 +14,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def main(args):
-    
+
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs(args.model_dir, exist_ok=True)
 
@@ -56,18 +56,18 @@ def main(args):
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
     batch_step_size = len(data_loader.dataset) / args.batch_size
-    
+
     for epoch in range(args.num_epochs):
 
         loss_sum = 0.0
         scheduler.step()
         model.train()
 
-        for isample, sample in enumerate(data_loader):
-            
-            image = sample['image'].to(device)
-            question = sample['question'].to(device)
-            answer = sample['answer'].to(device)
+        for batch_idx, batch_sample in enumerate(data_loader):
+
+            image = batch_sample['image'].to(device)
+            question = batch_sample['question'].to(device)
+            answer = batch_sample['answer'].to(device)
 
             prediction = model(image, question)
             loss = criterion(prediction, answer)
@@ -78,20 +78,21 @@ def main(args):
 
             loss_sum += loss.item()
 
-            if isample % 100 == 0:
+            if batch_idx % 100 == 0:
                 print('Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
-                      .format(epoch+1, args.num_epochs, isample, int(batch_step_size), loss.item()))
+                      .format(epoch+1, args.num_epochs, batch_idx, int(batch_step_size), loss.item()))
 
         # Print the average loss (loss per mini-batch).
         avg_loss = loss_sum / batch_step_size
-        print('Epoch [{}/{}] Loss: {:.8f}'.format(epoch+1, args.num_epochs, avg_loss))
+        print('Epoch [{:02d}/{:02d}], Avg. Loss: {:.8f}'
+              .format(epoch+1, args.num_epochs, avg_loss))
 
-        # Log the average loss as an epoch. 
+        # Log the average loss as an epoch.
         f.write(str(epoch+1) + '\t' + str(avg_loss) + '\n')
 
         # Save the model check points.
         if (epoch+1) % args.save_step == 0:
-            torch.save({'epoch': epoch,'state_dict': model.state_dict()},
+            torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
                        os.path.join(args.model_dir, 'model-epoch-{}.ckpt'.format(epoch+1)))
 
     f.close()
@@ -100,36 +101,55 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--input_dir', type=str, default='./datasets',
                         help='input directory for visual question answering.')
+
     parser.add_argument('--log_dir', type=str, default='./logs',
                         help='directory for logs.')
+
     parser.add_argument('--model_dir', type=str, default='./models',
                         help='directory for saved models.')
+
     parser.add_argument('--max_qst_length', type=int, default=30,
-                        help='maximum length of question. the length in the VQA dataset = 26.')
+                        help='maximum length of question. \
+                              the length in the VQA dataset = 26.')
+
     parser.add_argument('--embed_size', type=int, default=1024,
-                        help='embedding size of feature vector for both image and question.')
+                        help='embedding size of feature vector \
+                              for both image and question.')
+
     parser.add_argument('--word_embed_size', type=int, default=300,
-                        help='embedding size of word used for the input in RNN(LSTM).')
+                        help='embedding size of word \
+                              used for the input in the LSTM.')
+
     parser.add_argument('--num_layers', type=int, default=2,
-                        help='number of layers of RNN(LSTM).')
+                        help='number of layers of the RNN(LSTM).')
+
     parser.add_argument('--hidden_size', type=int, default=512,
-                        help='hidden_size.')
+                        help='hidden_size in the LSTM.')
+
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='learning rate for training.')
+
     parser.add_argument('--step_size', type=int, default=5,
                         help='period of learning rate decay.')
+
     parser.add_argument('--gamma', type=float, default=0.1,
                         help='multiplicative factor of learning rate decay.')
+
     parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs.')
+
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size.')
+
     parser.add_argument('--num_workers', type=int, default=16,
                         help='number of processes working on cpu.')
+
     parser.add_argument('--save_step', type=int, default=5,
                         help='save step of model.')
+
     args = parser.parse_args()
 
     main(args)
