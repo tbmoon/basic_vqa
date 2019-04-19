@@ -4,6 +4,8 @@
 .DS_Store
 
 datasets/
+models/
+logs/
 
 __pycache__
 tmp

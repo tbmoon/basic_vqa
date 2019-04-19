@@ -99,7 +99,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', type=str, default='./datasets',
                         help='input directory for visual question answering.')
-    parser.add_argument('--log_dir', type=str, default='./log',
+    parser.add_argument('--log_dir', type=str, default='./logs',
                         help='directory for logs.')
     parser.add_argument('--model_dir', type=str, default='./models',
                         help='directory for saved models.')
