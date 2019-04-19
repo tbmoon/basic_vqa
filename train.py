@@ -27,8 +27,8 @@ def main(args):
         shuffle=True,
         num_workers=args.num_workers)
 
-    qst_vocab_size = data_loader.dataset.vocab_qst.num_vocab
-    ans_vocab_size = data_loader.dataset.vocab_ans.num_vocab
+    qst_vocab_size = data_loader.dataset.qst_vocab.vocab_size
+    ans_vocab_size = data_loader.dataset.ans_vocab.vocab_size
 
     model = VqaModel(
         embed_size=args.embed_size,
