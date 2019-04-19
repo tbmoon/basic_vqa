@@ -46,18 +46,38 @@ class VqaDataset(data.Dataset):
         return len(self.vqa)
 
 
-def get_loader(input_dir, input_vqa, max_qst_length, transform, batch_size, shuffle, num_workers):
+def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, batch_size, num_workers):
 
-    vqa_dataset = VqaDataset(
-        input_dir=input_dir,
-        input_vqa=input_vqa,
-        max_qst_length=max_qst_length,
-        transform=transform)
+    transform = {
+        'train': transforms.Compose([transforms.ToTensor(),
+                                     transforms.Normalize((0.485, 0.456, 0.406),
+                                                          (0.229, 0.224, 0.225))]),
+        'valid': transforms.Compose([transforms.ToTensor(),
+                                     transforms.Normalize((0.485, 0.456, 0.406),
+                                                          (0.229, 0.224, 0.225))])}
 
-    data_loader = torch.utils.data.DataLoader(
-        dataset=vqa_dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers)
+    vqa_dataset = {
+        'train': VqaDataset(
+            input_dir=input_dir,
+            input_vqa=input_vqa_train,
+            max_qst_length=max_qst_length,
+            transform=transform['train']),
+        'valid': VqaDataset(
+            input_dir=input_dir,
+            input_vqa=input_vqa_valid,
+            max_qst_length=max_qst_length,
+            transform=transform['valid'])}
+
+    data_loader = {
+        'train': torch.utils.data.DataLoader(
+            dataset=vqa_dataset['train'],
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers),
+        'valid': torch.utils.data.DataLoader(
+            dataset=vqa_dataset['valid'],
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers)}
 
     return data_loader

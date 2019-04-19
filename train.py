@@ -7,7 +7,6 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 from data_loader import get_loader
 from models import VqaModel
-from torchvision import transforms
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -19,23 +18,17 @@ def main(args):
     os.makedirs(args.model_dir, exist_ok=True)
 
     f = open(os.path.join(args.log_dir, 'log.txt'), 'w')
-
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406),
-                             (0.229, 0.224, 0.225))])
-
+    
     data_loader = get_loader(
         input_dir=args.input_dir,
-        input_vqa='train.npy',
+        input_vqa_train='train.npy',
+        input_vqa_valid='valid.npy',
         max_qst_length=args.max_qst_length,
-        transform=transform,
         batch_size=args.batch_size,
-        shuffle=True,
         num_workers=args.num_workers)
 
-    qst_vocab_size = data_loader.dataset.qst_vocab.vocab_size
-    ans_vocab_size = data_loader.dataset.ans_vocab.vocab_size
+    qst_vocab_size = data_loader['train'].dataset.qst_vocab.vocab_size
+    ans_vocab_size = data_loader['train'].dataset.ans_vocab.vocab_size
 
     model = VqaModel(
         embed_size=args.embed_size,
@@ -43,8 +36,7 @@ def main(args):
         ans_vocab_size=ans_vocab_size,
         word_embed_size=args.word_embed_size,
         num_layers=args.num_layers,
-        hidden_size=args.hidden_size)
-    model = model.to(device)
+        hidden_size=args.hidden_size).to(device)
 
     criterion = nn.CrossEntropyLoss()
 
@@ -55,45 +47,57 @@ def main(args):
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
-    batch_step_size = len(data_loader.dataset) / args.batch_size
+    print('\n')
 
     for epoch in range(args.num_epochs):
+        
+        for phase in ['train', 'valid']:
+            
+            loss_sum = 0.0
+            batch_step_size = len(data_loader[phase].dataset) / args.batch_size
 
-        loss_sum = 0.0
-        scheduler.step()
-        model.train()
+            if phase == 'train':
+                scheduler.step()
+                model.train()
+            else:
+                model.eval()
 
-        for batch_idx, batch_sample in enumerate(data_loader):
+            for batch_idx, batch_sample in enumerate(data_loader[phase]):
+                    
+                image = batch_sample['image'].to(device)
+                question = batch_sample['question'].to(device)
+                answer = batch_sample['answer'].to(device)
 
-            image = batch_sample['image'].to(device)
-            question = batch_sample['question'].to(device)
-            answer = batch_sample['answer'].to(device)
+                optimizer.zero_grad()
+                
+                with torch.set_grad_enabled(phase == 'train'):
+                    
+                    prediction = model(image, question)
+                    loss = criterion(prediction, answer)
 
-            prediction = model(image, question)
-            loss = criterion(prediction, answer)
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
 
-            model.zero_grad()
-            loss.backward()
-            optimizer.step()
+                loss_sum += loss.item()
 
-            loss_sum += loss.item()
+                # Print the loss in a mini-batch.
+                if batch_idx % 100 == 0:
+                    print('| {} SET | Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
+                          .format(phase.upper(), epoch+1, args.num_epochs, batch_idx, int(batch_step_size), loss.item()))
 
-            if batch_idx % 100 == 0:
-                print('Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
-                      .format(epoch+1, args.num_epochs, batch_idx, int(batch_step_size), loss.item()))
+            # Print the average loss (loss per mini-batch).
+            avg_loss = loss_sum / batch_step_size
+            print('| {} SET | Epoch [{:02d}/{:02d}], Avg. Loss: {:.8f} \n'
+                  .format(phase.upper(), epoch+1, args.num_epochs, avg_loss))
+            
+            # Log the average loss as an epoch.
+            f.write(phase + '\t' + str(epoch+1) + '\t' + str(avg_loss) + '\n')
 
-        # Print the average loss (loss per mini-batch).
-        avg_loss = loss_sum / batch_step_size
-        print('Epoch [{:02d}/{:02d}], Avg. Loss: {:.8f}'
-              .format(epoch+1, args.num_epochs, avg_loss))
-
-        # Log the average loss as an epoch.
-        f.write(str(epoch+1) + '\t' + str(avg_loss) + '\n')
-
-        # Save the model check points.
-        if (epoch+1) % args.save_step == 0:
-            torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
-                       os.path.join(args.model_dir, 'model-epoch-{}.ckpt'.format(epoch+1)))
+            # Save the model check points.
+            if (epoch+1) % args.save_step == 0:
+                torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
+                           os.path.join(args.model_dir, 'model-epoch-{}.ckpt'.format(epoch+1)))
 
     f.close()
 
