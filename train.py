@@ -40,7 +40,11 @@ def main(args):
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    params = list(model.parameters()) # TO DO: UPDATE THIS
+          
+    params = list(model.img_encoder.fc.parameters()) \
+           + list(model.qst_encoder.parameters()) \
+           + list(model.fc.parameters())
+    
     optimizer = torch.optim.Adam(params, lr=args.learning_rate)
     
     for iepoch in range(args.num_epochs):
@@ -61,6 +65,9 @@ def main(args):
             optimizer.step()
             
             loss_sum += loss.item()
+            
+            if isample % 100 == 0:
+                print('isample {} - Loss: {:.8f}'.format(isample, loss.item()))
 
         avg_loss = loss_sum / len(data_loader.dataset)
         print('Epoch [{}/{}] Loss: {:.8f}'.format(iepoch+1, args.num_epochs, avg_loss))    
@@ -81,13 +88,13 @@ if __name__ == '__main__':
                         help='number of layers of RNN(LSTM).')
     parser.add_argument('--hidden_size', type=int, default=512,
                         help='hidden_size.')
-    parser.add_argument('--learning_rate', type=float, default=0.001,
+    parser.add_argument('--learning_rate', type=float, default=0.00001,
                         help='learning rate for training')
     parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs.')
-    parser.add_argument('--batch_size', type=int, default=8,
+    parser.add_argument('--batch_size', type=int, default=124,
                         help='batch_size.')
-    parser.add_argument('--num_workers', type=int, default=4,
+    parser.add_argument('--num_workers', type=int, default=16,
                         help='number of processes working on cpu.')
     args = parser.parse_args()
     
