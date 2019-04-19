@@ -60,7 +60,7 @@ class QstEncoder(nn.Module):
 
         l2_norm = qst_feature.norm(p=2, dim=1, keepdim=True).detach()
         qst_feature = qst_feature.div(l2_norm)                        # l2-normalized feature vector
-        
+
         return qst_feature
 
 
