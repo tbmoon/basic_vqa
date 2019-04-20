@@ -100,10 +100,10 @@ def main(args):
             # Log the loss and accuracy in an epoch.
             f.write(phase + '\t' + str(epoch+1) + '\t' + str(epoch_loss) + '\t' + str(epoch_acc) + '\n')
 
-            # Save the model check points.
-            if (epoch+1) % args.save_step == 0:
-                torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
-                           os.path.join(args.model_dir, 'model-epoch-{:03d}.ckpt'.format(epoch+1)))
+        # Save the model check points.
+        if (epoch+1) % args.save_step == 0:
+            torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
+                       os.path.join(args.model_dir, 'model-epoch-{:03d}.ckpt'.format(epoch+1)))
 
     f.close()
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='learning rate for training.')
 
-    parser.add_argument('--step_size', type=int, default=5,
+    parser.add_argument('--step_size', type=int, default=2,
                         help='period of learning rate decay.')
 
     parser.add_argument('--gamma', type=float, default=0.1,

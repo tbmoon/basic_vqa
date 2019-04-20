@@ -58,9 +58,6 @@ class QstEncoder(nn.Module):
         qst_feature = self.relu(qst_feature)
         qst_feature = self.fc(qst_feature)                            # [batch_size, embed_size]
 
-        l2_norm = qst_feature.norm(p=2, dim=1, keepdim=True).detach()
-        qst_feature = qst_feature.div(l2_norm)                        # l2-normalized feature vector
-
         return qst_feature
 
 
