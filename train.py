@@ -83,8 +83,8 @@ def main(args):
                         optimizer.step()
 
                 # Evaluation metric with 'multiple choice' and 'randomly selected answer', respectively.
-                # Our model prediction to '<unk>' is not accepted as answer.
-                pred[pred == ans_unk_idx] = -9999
+                if args.is_unk_accepted == False:
+                    pred[pred == ans_unk_idx] = -9999
                 running_loss += loss.item()
                 running_corr += torch.stack([(ans == pred.cpu()) for ans in multi_choice]).any(dim=0).sum()
                 running_corr_r += torch.sum(label == pred)
@@ -128,6 +128,10 @@ if __name__ == '__main__':
 
     parser.add_argument('--model_dir', type=str, default='./models',
                         help='directory for saved models.')
+
+    parser.add_argument('--is_unk_accepted', type=bool, default=True,
+                        help='our model prediction to <unk> is accepted \
+                              to answer if True.')
 
     parser.add_argument('--max_qst_length', type=int, default=30,
                         help='maximum length of question. \
