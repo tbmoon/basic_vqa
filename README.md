@@ -29,3 +29,8 @@ $ python build_vqa_inputs.py
 ```bash
 $ python train.py
 ```
+
+
+## References
+- "VQA: Visual Question Answering"
+[paper](https://arxiv.org/pdf/1505.00468.pdf).
