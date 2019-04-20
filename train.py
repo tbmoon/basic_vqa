@@ -63,11 +63,11 @@ def main(args):
                 model.eval()
 
             for batch_idx, batch_sample in enumerate(data_loader[phase]):
-                
+
                 image = batch_sample['image'].to(device)
                 question = batch_sample['question'].to(device)
                 label = batch_sample['answer_label'].to(device)
-                multi_choice = batch_sample['answer_multi_choice']  # not tensor, list
+                multi_choice = batch_sample['answer_multi_choice']  # not tensor, list.
 
                 optimizer.zero_grad()
                 
@@ -81,7 +81,7 @@ def main(args):
                         loss.backward()
                         optimizer.step()
 
-                # Evaluation metric with 'multiple choice'
+                # Evaluation metric with 'multiple choice' and 'randomly selected answer', respectively.
                 running_loss += loss.item()
                 running_corr += torch.stack([(ans == pred.cpu()) for ans in multi_choice]).any(dim=0).sum()
                 running_corr_r += torch.sum(label == pred)
@@ -111,8 +111,6 @@ def main(args):
         if (epoch+1) % args.save_step == 0:
             torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
                        os.path.join(args.model_dir, 'model-epoch-{:02d}.ckpt'.format(epoch+1)))
-
-    f.close()
 
 
 if __name__ == '__main__':
