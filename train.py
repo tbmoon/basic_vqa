@@ -42,7 +42,8 @@ def main(args):
 
     params = list(model.img_encoder.fc.parameters()) \
         + list(model.qst_encoder.parameters()) \
-        + list(model.fc.parameters())
+        + list(model.fc1.parameters()) \
+        + list(model.fc2.parameters())
 
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
@@ -102,7 +103,7 @@ def main(args):
             # Save the model check points.
             if (epoch+1) % args.save_step == 0:
                 torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
-                           os.path.join(args.model_dir, 'model-epoch-{}.ckpt'.format(epoch+1)))
+                           os.path.join(args.model_dir, 'model-epoch-{:03d}.ckpt'.format(epoch+1)))
 
     f.close()
 
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=16,
                         help='number of processes working on cpu.')
 
-    parser.add_argument('--save_step', type=int, default=5,
+    parser.add_argument('--save_step', type=int, default=2,
                         help='save step of model.')
 
     args = parser.parse_args()
