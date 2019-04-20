@@ -67,7 +67,7 @@ class VqaModel(nn.Module):
         super(VqaModel, self).__init__()
         self.img_encoder = ImgEncoder(embed_size)
         self.qst_encoder = QstEncoder(qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size)
-        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
         self.fc1 = nn.Linear(embed_size, ans_vocab_size)
         self.fc2 = nn.Linear(ans_vocab_size, ans_vocab_size)
 
@@ -76,9 +76,9 @@ class VqaModel(nn.Module):
         img_feature = self.img_encoder(img)                     # [batch_size, embed_size]
         qst_feature = self.qst_encoder(qst)                     # [batch_size, embed_size]
         combined_feature = torch.mul(img_feature, qst_feature)  # [batch_size, embed_size]
-        combined_feature = self.relu(combined_feature)
+        combined_feature = self.tanh(combined_feature)
         combined_feature = self.fc1(combined_feature)           # [batch_size, ans_vocab_size=1000]
-        combined_feature = self.relu(combined_feature)
+        combined_feature = self.tanh(combined_feature)
         combined_feature = self.fc2(combined_feature)           # [batch_size, ans_vocab_size=1000]
 
         return combined_feature
