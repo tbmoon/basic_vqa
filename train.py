@@ -47,13 +47,14 @@ def main(args):
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
-    print('\n')
+    print()
 
     for epoch in range(args.num_epochs):
         
         for phase in ['train', 'valid']:
             
-            loss_sum = 0.0
+            running_loss = 0.0
+            running_corr = 0
             batch_step_size = len(data_loader[phase].dataset) / args.batch_size
 
             if phase == 'train':
@@ -72,27 +73,31 @@ def main(args):
                 
                 with torch.set_grad_enabled(phase == 'train'):
                     
-                    prediction = model(image, question)
-                    loss = criterion(prediction, answer)
+                    output = model(image, question)
+                    _, prediction = torch.max(output, 1)
+                    loss = criterion(output, answer)
 
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
 
-                loss_sum += loss.item()
+                running_loss += loss.item()
+                running_corr += torch.sum(prediction == answer.data)
 
                 # Print the loss in a mini-batch.
                 if batch_idx % 100 == 0:
                     print('| {} SET | Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
                           .format(phase.upper(), epoch+1, args.num_epochs, batch_idx, int(batch_step_size), loss.item()))
 
-            # Print the average loss (loss per mini-batch).
-            avg_loss = loss_sum / batch_step_size
-            print('| {} SET | Epoch [{:02d}/{:02d}], Avg. Loss: {:.8f} \n'
-                  .format(phase.upper(), epoch+1, args.num_epochs, avg_loss))
+            # Print the loss and accuracy in an epoch.
+            epoch_loss = running_loss / batch_step_size
+            epoch_acc = running_corr.double() / len(data_loader[phase].dataset) 
+
+            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.8f}, Acc: {:.4f} \n'
+                  .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc))
             
-            # Log the average loss as an epoch.
-            f.write(phase + '\t' + str(epoch+1) + '\t' + str(avg_loss) + '\n')
+            # Log the loss and accuracy in an epoch.
+            f.write(phase + '\t' + str(epoch+1) + '\t' + str(epoch_loss) + '\t' + str(epoch_acc) + '\n')
 
             # Save the model check points.
             if (epoch+1) % args.save_step == 0:
