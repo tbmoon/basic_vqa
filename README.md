@@ -29,3 +29,17 @@ $ python build_vqa_inputs.py
 ```bash
 $ python train.py
 ```
+
+## References
+* Paper implementation
+  + Paper: VQA: Visual Question Answering
+  + URL: https://arxiv.org/pdf/1505.00468.pdf
+    
+* Pytorch tutorial
+  + URL: https://pytorch.org/tutorials/
+  + Github: https://github.com/yunjey/pytorch-tutorial
+  + Github: https://github.com/GunhoChoi/PyTorch-FastCampus
+
+* Preprocessing:
+  + Tensorflow implementation of N2NNM
+  + Github: https://github.com/ronghanghu/n2nmn
