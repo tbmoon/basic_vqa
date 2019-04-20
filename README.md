@@ -32,4 +32,5 @@ $ python train.py
 
 
 ## References
-- VQA: Visual Question Answering" (https://arxiv.org/pdf/1505.00468.pdf).
+* VQA: Visual Question Answering
+  + Paper: https://arxiv.org/pdf/1505.00468.pdf
