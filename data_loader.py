@@ -9,12 +9,13 @@ from utils import text_processing
 
 class VqaDataset(data.Dataset):
 
-    def __init__(self, input_dir, input_vqa, max_qst_length=30, transform=None):
+    def __init__(self, input_dir, input_vqa, max_qst_length=30, max_num_ans=10, transform=None):
         self.input_dir = input_dir
         self.vqa = np.load(input_dir+'/'+input_vqa)
         self.qst_vocab = text_processing.VocabDict(input_dir+'/vocab_questions.txt')
         self.ans_vocab = text_processing.VocabDict(input_dir+'/vocab_answers.txt')
         self.max_qst_length = max_qst_length
+        self.max_num_ans = max_num_ans
         self.load_ans = ('valid_answers' in self.vqa[0]) and (self.vqa[0]['valid_answers'] is not None)
         self.transform = transform
 
@@ -24,18 +25,25 @@ class VqaDataset(data.Dataset):
         qst_vocab = self.qst_vocab
         ans_vocab = self.ans_vocab
         max_qst_length = self.max_qst_length
+        max_num_ans = self.max_num_ans
         transform = self.transform
         load_ans = self.load_ans
 
         image = vqa[idx]['image_path']
         image = Image.open(image).convert('RGB')
-        qst2idc = np.array([qst_vocab.word2idx('<pad>')] * max_qst_length)
+        qst2idc = np.array([qst_vocab.word2idx('<pad>')] * max_qst_length)  # padded with '<pad>' in 'ans_vocab'
         qst2idc[:len(vqa[idx]['question_tokens'])] = [qst_vocab.word2idx(w) for w in vqa[idx]['question_tokens']]
         sample = {'image': image, 'question': qst2idc}
+
         if load_ans:
             ans2idc = [ans_vocab.word2idx(w) for w in vqa[idx]['valid_answers']]
             ans2idx = np.random.choice(ans2idc)
-            sample['answer'] = ans2idx
+            sample['answer_label'] = ans2idx         # for training
+            
+            mul2idc = list([-1] * max_num_ans)       # padded with -1 (no meaning) not used in 'ans_vocab'
+            mul2idc[:len(ans2idc)] = ans2idc         # our model should not predict -1
+            sample['answer_multi_choice'] = mul2idc  # for evaluation metric of 'multiple choice'
+            
         if transform:
             sample['image'] = transform(sample['image'])
 
@@ -46,7 +54,7 @@ class VqaDataset(data.Dataset):
         return len(self.vqa)
 
 
-def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, batch_size, num_workers):
+def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, max_num_ans, batch_size, num_workers):
 
     transform = {
         'train': transforms.Compose([transforms.ToTensor(),
@@ -61,11 +69,13 @@ def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, batc
             input_dir=input_dir,
             input_vqa=input_vqa_train,
             max_qst_length=max_qst_length,
+            max_num_ans=max_num_ans,
             transform=transform['train']),
         'valid': VqaDataset(
             input_dir=input_dir,
             input_vqa=input_vqa_valid,
             max_qst_length=max_qst_length,
+            max_num_ans=max_num_ans,
             transform=transform['valid'])}
 
     data_loader = {

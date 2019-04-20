@@ -16,14 +16,13 @@ def main(args):
 
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs(args.model_dir, exist_ok=True)
-
-    f = open(os.path.join(args.log_dir, 'log.txt'), 'w')
     
     data_loader = get_loader(
         input_dir=args.input_dir,
         input_vqa_train='train.npy',
         input_vqa_valid='valid.npy',
         max_qst_length=args.max_qst_length,
+        max_num_ans=args.max_num_ans,
         batch_size=args.batch_size,
         num_workers=args.num_workers)
 
@@ -48,14 +47,13 @@ def main(args):
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
-    print()
-
     for epoch in range(args.num_epochs):
         
         for phase in ['train', 'valid']:
             
             running_loss = 0.0
             running_corr = 0
+            running_corr_r = 0
             batch_step_size = len(data_loader[phase].dataset) / args.batch_size
 
             if phase == 'train':
@@ -65,45 +63,54 @@ def main(args):
                 model.eval()
 
             for batch_idx, batch_sample in enumerate(data_loader[phase]):
-                    
+                
                 image = batch_sample['image'].to(device)
                 question = batch_sample['question'].to(device)
-                answer = batch_sample['answer'].to(device)
+                label = batch_sample['answer_label'].to(device)
+                multi_choice = batch_sample['answer_multi_choice']  # not tensor, list
 
                 optimizer.zero_grad()
                 
                 with torch.set_grad_enabled(phase == 'train'):
-                    
-                    output = model(image, question)
-                    _, prediction = torch.max(output, 1)
-                    loss = criterion(output, answer)
+
+                    output = model(image, question)  # [batch_size, ans_vocab_size=1000] 
+                    _, pred = torch.max(output, 1)   # [batch_size]
+                    loss = criterion(output, label)
 
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
 
+                # Evaluation metric with 'multiple choice'
                 running_loss += loss.item()
-                running_corr += torch.sum(prediction == answer.data)
+                running_corr += torch.stack([(ans == pred.cpu()) for ans in multi_choice]).any(dim=0).sum()
+                running_corr_r += torch.sum(label == pred)
 
                 # Print the loss in a mini-batch.
                 if batch_idx % 100 == 0:
-                    print('| {} SET | Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.8f}'
+                    print('| {} SET | Epoch [{:02d}/{:02d}], Step [{:04d}/{:04d}], Loss: {:.4f}'
                           .format(phase.upper(), epoch+1, args.num_epochs, batch_idx, int(batch_step_size), loss.item()))
 
             # Print the loss and accuracy in an epoch.
             epoch_loss = running_loss / batch_step_size
-            epoch_acc = running_corr.double() / len(data_loader[phase].dataset) 
+            epoch_acc = running_corr.double() / len(data_loader[phase].dataset)      # multiple choice    
+            epoch_acc_r = running_corr_r.double() / len(data_loader[phase].dataset)  # randomly selected answer
 
-            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.8f}, Acc: {:.4f} \n'
-                  .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc))
-            
+            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(M.C.): {:.4f}, Acc(R.S.): {:.4f} \n'
+                  .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc, epoch_acc_r))
+
             # Log the loss and accuracy in an epoch.
-            f.write(phase + '\t' + str(epoch+1) + '\t' + str(epoch_loss) + '\t' + str(epoch_acc) + '\n')
+            with open(os.path.join(args.log_dir, '{}-log-epoch-{:02}.txt')
+                      .format(phase, epoch+1), 'w') as f:
+                f.write(str(epoch+1) + '\t' 
+                        + str(epoch_loss) + '\t' 
+                        + str(epoch_acc.item()) + '\t'
+                        + str(epoch_acc_r.item()))
 
         # Save the model check points.
         if (epoch+1) % args.save_step == 0:
             torch.save({'epoch': epoch, 'state_dict': model.state_dict()},
-                       os.path.join(args.model_dir, 'model-epoch-{:03d}.ckpt'.format(epoch+1)))
+                       os.path.join(args.model_dir, 'model-epoch-{:02d}.ckpt'.format(epoch+1)))
 
     f.close()
 
@@ -124,6 +131,9 @@ if __name__ == '__main__':
     parser.add_argument('--max_qst_length', type=int, default=30,
                         help='maximum length of question. \
                               the length in the VQA dataset = 26.')
+    
+    parser.add_argument('--max_num_ans', type=int, default=10,
+                        help='maximum number of answers.')
 
     parser.add_argument('--embed_size', type=int, default=1024,
                         help='embedding size of feature vector \
@@ -157,7 +167,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=16,
                         help='number of processes working on cpu.')
 
-    parser.add_argument('--save_step', type=int, default=2,
+    parser.add_argument('--save_step', type=int, default=1,
                         help='save step of model.')
 
     args = parser.parse_args()
