@@ -23,7 +23,7 @@ class VocabDict:
         self.word_list = load_str_list(vocab_file)
         self.word2idx_dict = {w:n_w for n_w, w in enumerate(self.word_list)}
         self.vocab_size = len(self.word_list)
-        self.UNK_idx = self.word2idx_dict['<unk>'] if '<unk>' in self.word2idx_dict else None
+        self.unk2idx = self.word2idx_dict['<unk>'] if '<unk>' in self.word2idx_dict else None
 
     def idx2word(self, n_w):
 
@@ -32,8 +32,8 @@ class VocabDict:
     def word2idx(self, w):
         if w in self.word2idx_dict:
             return self.word2idx_dict[w]
-        elif self.UNK_idx is not None:
-            return self.UNK_idx
+        elif self.unk2idx is not None:
+            return self.unk2idx
         else:
             raise ValueError('word %s not in dictionary (while dictionary does not contain <unk>)' % w)
 

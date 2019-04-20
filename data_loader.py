@@ -39,11 +39,11 @@ class VqaDataset(data.Dataset):
             ans2idc = [ans_vocab.word2idx(w) for w in vqa[idx]['valid_answers']]
             ans2idx = np.random.choice(ans2idc)
             sample['answer_label'] = ans2idx         # for training
-            
+
             mul2idc = list([-1] * max_num_ans)       # padded with -1 (no meaning) not used in 'ans_vocab'
             mul2idc[:len(ans2idc)] = ans2idc         # our model should not predict -1
             sample['answer_multi_choice'] = mul2idc  # for evaluation metric of 'multiple choice'
-            
+
         if transform:
             sample['image'] = transform(sample['image'])
 

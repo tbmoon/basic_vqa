@@ -16,7 +16,7 @@ def main(args):
 
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs(args.model_dir, exist_ok=True)
-    
+
     data_loader = get_loader(
         input_dir=args.input_dir,
         input_vqa_train='train.npy',
@@ -28,6 +28,7 @@ def main(args):
 
     qst_vocab_size = data_loader['train'].dataset.qst_vocab.vocab_size
     ans_vocab_size = data_loader['train'].dataset.ans_vocab.vocab_size
+    ans_unk_idx = data_loader['train'].dataset.ans_vocab.unk2idx
 
     model = VqaModel(
         embed_size=args.embed_size,
@@ -48,9 +49,9 @@ def main(args):
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
 
     for epoch in range(args.num_epochs):
-        
+
         for phase in ['train', 'valid']:
-            
+
             running_loss = 0.0
             running_corr = 0
             running_corr_r = 0
@@ -70,10 +71,10 @@ def main(args):
                 multi_choice = batch_sample['answer_multi_choice']  # not tensor, list.
 
                 optimizer.zero_grad()
-                
+
                 with torch.set_grad_enabled(phase == 'train'):
 
-                    output = model(image, question)  # [batch_size, ans_vocab_size=1000] 
+                    output = model(image, question)  # [batch_size, ans_vocab_size=1000]
                     _, pred = torch.max(output, 1)   # [batch_size]
                     loss = criterion(output, label)
 
@@ -82,6 +83,8 @@ def main(args):
                         optimizer.step()
 
                 # Evaluation metric with 'multiple choice' and 'randomly selected answer', respectively.
+                # Our model prediction to '<unk>' is not accepted as answer.
+                pred[pred == ans_unk_idx] = -9999
                 running_loss += loss.item()
                 running_corr += torch.stack([(ans == pred.cpu()) for ans in multi_choice]).any(dim=0).sum()
                 running_corr_r += torch.sum(label == pred)
@@ -93,7 +96,7 @@ def main(args):
 
             # Print the loss and accuracy in an epoch.
             epoch_loss = running_loss / batch_step_size
-            epoch_acc = running_corr.double() / len(data_loader[phase].dataset)      # multiple choice    
+            epoch_acc = running_corr.double() / len(data_loader[phase].dataset)      # multiple choice
             epoch_acc_r = running_corr_r.double() / len(data_loader[phase].dataset)  # randomly selected answer
 
             print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(M.C.): {:.4f}, Acc(R.S.): {:.4f} \n'
@@ -102,8 +105,8 @@ def main(args):
             # Log the loss and accuracy in an epoch.
             with open(os.path.join(args.log_dir, '{}-log-epoch-{:02}.txt')
                       .format(phase, epoch+1), 'w') as f:
-                f.write(str(epoch+1) + '\t' 
-                        + str(epoch_loss) + '\t' 
+                f.write(str(epoch+1) + '\t'
+                        + str(epoch_loss) + '\t'
                         + str(epoch_acc.item()) + '\t'
                         + str(epoch_acc_r.item()))
 
@@ -129,7 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_qst_length', type=int, default=30,
                         help='maximum length of question. \
                               the length in the VQA dataset = 26.')
-    
+
     parser.add_argument('--max_num_ans', type=int, default=10,
                         help='maximum number of answers.')
 
