@@ -36,7 +36,7 @@ $ python train.py
 
 | Model | Validation Accuracy |
 | --- | --- |
-| (Paper Model)[https://visualqa.org/roe.html] | 54.08 |
+| [Paper Model](https://visualqa.org/roe.html) | 54.08 |
 | My Model | **52.78** |
 
 
