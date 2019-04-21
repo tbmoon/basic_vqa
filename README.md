@@ -32,8 +32,8 @@ $ python train.py
 
 ## Results
 
-- Experiment 1: Loss and Accuracy on VQA datasets
-  + Prediction of '<UNK>' is not accepted as Answer
+- Loss and Accuracy on VQA datasets
+  + Exp1: Prediction of '<UNK>' is not accepted as Answer
 
 ![train1](./png/train1.png)
 
