@@ -34,10 +34,10 @@ $ python train.py
 
 - Comparison Result (***My model is still under training.***) 
 
-| Model | Metric | Dataset | Accuracy |
-| --- | --- | --- | --- |
-| [Paper Model](https://visualqa.org/roe.html) | Open-Ended | VQA v2 | 54.08 |
-| My Model | Multiple Choice | VQA v2 | **53.20** |
+| Model | Metric | Dataset | Accuracy | Source |
+| --- | --- | --- | --- | --- |
+| Paper Model | Open-Ended | VQA v2 | 54.08 | [VQA Challenge](https://visualqa.org/roe.html) |
+| My Model | Multiple Choice | VQA v2 | **53.20** | |
 
 
 - Loss and Accuracy on VQA datasets v2
