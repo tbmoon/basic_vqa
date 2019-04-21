@@ -34,7 +34,7 @@ $ python train.py
 
 - Comparison Result (***My model is still under training.***) 
 
-| Model | Metric | Dataset | Validation Accuracy |
+| Model | Metric | Dataset | Accuracy |
 | --- | --- | --- | --- |
 | [Paper Model](https://visualqa.org/roe.html) | Open-Ended | VQA v2 | 54.08 |
 | My Model | Multiple Choice | VQA v2 | **53.20** |
