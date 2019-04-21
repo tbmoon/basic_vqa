@@ -51,6 +51,6 @@ $ python train.py
   + Github: https://github.com/yunjey/pytorch-tutorial
   + Github: https://github.com/GunhoChoi/PyTorch-FastCampus
 
-* Preprocessing:
+* Preprocessing
   + Tensorflow implementation of N2NNM
   + Github: https://github.com/ronghanghu/n2nmn
