@@ -32,6 +32,14 @@ $ python train.py
 
 ## Results
 
+- ***My model is still under training.*** 
+
+| Model | Validation Accuracy |
+| --- | --- |
+| (Paper Model)[https://visualqa.org/roe.html] | 54.08 |
+| My Model | **52.78** |
+
+
 - Loss and Accuracy on VQA datasets v2
 
 ![train1](./png/train.png)
