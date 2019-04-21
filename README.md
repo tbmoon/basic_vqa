@@ -33,7 +33,7 @@ $ python train.py
 ## Results
 
 - Loss and Accuracy on VQA datasets
-  + Exp1: Prediction of '<UNK>' is not accepted as Answer
+  + Exp1: Prediction of \'<UNK>\' is not accepted as Answer
 
 ![train1](./png/train1.png)
 
