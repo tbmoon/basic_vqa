@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_dir', type=str, default='./models',
                         help='directory for saved models.')
 
-    parser.add_argument('--is_unk_accepted', type=bool, default=True,
+    parser.add_argument('--is_unk_accepted', type=bool, default=False,
                         help='our model prediction to <unk> is accepted \
                               to answer if True.')
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', type=float, default=0.1,
                         help='multiplicative factor of learning rate decay.')
 
-    parser.add_argument('--num_epochs', type=int, default=20,
+    parser.add_argument('--num_epochs', type=int, default=16,
                         help='number of epochs.')
 
     parser.add_argument('--batch_size', type=int, default=256,
