@@ -167,7 +167,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size.')
 
-    parser.add_argument('--num_workers', type=int, default=16,
+    parser.add_argument('--num_workers', type=int, default=8,
                         help='number of processes working on cpu.')
 
     parser.add_argument('--save_step', type=int, default=1,
