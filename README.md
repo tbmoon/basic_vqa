@@ -32,7 +32,7 @@ $ python train.py
 
 ## Results
 
-- ***My model is still under training.*** 
+- Comparison Result (***My model is still under training.***) 
 
 | Model | Validation Accuracy |
 | --- | --- |
