@@ -30,6 +30,13 @@ $ python build_vqa_inputs.py
 $ python train.py
 ```
 
+## Results
+
+- Loss and Accuracy on VQA datasets:
+
+![train1](./png/train1.png)
+
+
 ## References
 * Paper implementation
   + Paper: VQA: Visual Question Answering
