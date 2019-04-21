@@ -53,8 +53,8 @@ def main(args):
         for phase in ['train', 'valid']:
 
             running_loss = 0.0
-            running_corr = 0
-            running_corr_r = 0
+            running_corr_exp1 = 0
+            running_corr_exp2 = 0
             batch_step_size = len(data_loader[phase].dataset) / args.batch_size
 
             if phase == 'train':
@@ -74,20 +74,22 @@ def main(args):
 
                 with torch.set_grad_enabled(phase == 'train'):
 
-                    output = model(image, question)  # [batch_size, ans_vocab_size=1000]
-                    _, pred = torch.max(output, 1)   # [batch_size]
+                    output = model(image, question)      # [batch_size, ans_vocab_size=1000]
+                    _, pred_exp1 = torch.max(output, 1)  # [batch_size]
+                    _, pred_exp2 = torch.max(output, 1)  # [batch_size]
                     loss = criterion(output, label)
 
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
 
-                # Evaluation metric with 'multiple choice' and 'randomly selected answer', respectively.
-                if args.is_unk_accepted == False:
-                    pred[pred == ans_unk_idx] = -9999
+                # Evaluation metric of 'multiple choice'
+                # Exp1: our model prediction to '<unk>' IS accepted as the answer.
+                # Exp2: our model prediction to '<unk>' is NOT accepted as the answer.
+                pred_exp2[pred_exp2 == ans_unk_idx] = -9999
                 running_loss += loss.item()
-                running_corr += torch.stack([(ans == pred.cpu()) for ans in multi_choice]).any(dim=0).sum()
-                running_corr_r += torch.sum(label == pred)
+                running_corr_exp1 += torch.stack([(ans == pred_exp1.cpu()) for ans in multi_choice]).any(dim=0).sum()
+                running_corr_exp2 += torch.stack([(ans == pred_exp2.cpu()) for ans in multi_choice]).any(dim=0).sum()
 
                 # Print the loss in a mini-batch.
                 if batch_idx % 100 == 0:
@@ -96,19 +98,19 @@ def main(args):
 
             # Print the loss and accuracy in an epoch.
             epoch_loss = running_loss / batch_step_size
-            epoch_acc = running_corr.double() / len(data_loader[phase].dataset)      # multiple choice
-            epoch_acc_r = running_corr_r.double() / len(data_loader[phase].dataset)  # randomly selected answer
+            epoch_acc_exp1 = running_corr_exp1.double() / len(data_loader[phase].dataset)      # multiple choice
+            epoch_acc_exp2 = running_corr_exp2.double() / len(data_loader[phase].dataset)      # multiple choice
 
-            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(M.C.): {:.4f}, Acc(R.S.): {:.4f} \n'
-                  .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc, epoch_acc_r))
+            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(Ex1): {:.4f}, Acc(Ex2): {:.4f} \n'
+                  .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc_exp1, epoch_acc_exp2))
 
             # Log the loss and accuracy in an epoch.
             with open(os.path.join(args.log_dir, '{}-log-epoch-{:02}.txt')
                       .format(phase, epoch+1), 'w') as f:
                 f.write(str(epoch+1) + '\t'
                         + str(epoch_loss) + '\t'
-                        + str(epoch_acc.item()) + '\t'
-                        + str(epoch_acc_r.item()))
+                        + str(epoch_acc_exp1.item()) + '\t'
+                        + str(epoch_acc_exp2.item()))
 
         # Save the model check points.
         if (epoch+1) % args.save_step == 0:
@@ -128,10 +130,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--model_dir', type=str, default='./models',
                         help='directory for saved models.')
-
-    parser.add_argument('--is_unk_accepted', type=bool, default=False,
-                        help='our model prediction to <unk> is accepted \
-                              to answer if True.')
 
     parser.add_argument('--max_qst_length', type=int, default=30,
                         help='maximum length of question. \
@@ -163,7 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', type=float, default=0.1,
                         help='multiplicative factor of learning rate decay.')
 
-    parser.add_argument('--num_epochs', type=int, default=20,
+    parser.add_argument('--num_epochs', type=int, default=30,
                         help='number of epochs.')
 
     parser.add_argument('--batch_size', type=int, default=256,
