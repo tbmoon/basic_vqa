@@ -37,7 +37,7 @@ $ python train.py
 | Model | Validation Accuracy |
 | --- | --- |
 | [Paper Model](https://visualqa.org/roe.html) | 54.08 |
-| My Model | **52.78** |
+| My Model | **53.20** |
 
 
 - Loss and Accuracy on VQA datasets v2
