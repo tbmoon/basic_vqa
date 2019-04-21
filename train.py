@@ -101,7 +101,7 @@ def main(args):
             epoch_acc_exp1 = running_corr_exp1.double() / len(data_loader[phase].dataset)      # multiple choice
             epoch_acc_exp2 = running_corr_exp2.double() / len(data_loader[phase].dataset)      # multiple choice
 
-            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(Ex1): {:.4f}, Acc(Ex2): {:.4f} \n'
+            print('| {} SET | Epoch [{:02d}/{:02d}], Loss: {:.4f}, Acc(Exp1): {:.4f}, Acc(Exp2): {:.4f} \n'
                   .format(phase.upper(), epoch+1, args.num_epochs, epoch_loss, epoch_acc_exp1, epoch_acc_exp2))
 
             # Log the loss and accuracy in an epoch.
