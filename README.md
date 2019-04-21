@@ -32,12 +32,12 @@ $ python train.py
 
 ## Results
 
-- ***My model is still under training.*** 
+- Comparison Result (***My model is still under training.***) 
 
-| Model | Validation Accuracy |
-| --- | --- |
-| [Paper Model](https://visualqa.org/roe.html) | 54.08 |
-| My Model | **52.78** |
+| Model | Metric | Dataset | Accuracy |
+| --- | --- | --- | --- |
+| [Paper Model](https://visualqa.org/roe.html) | Open-Ended | VQA v2 | 54.08 |
+| My Model | Multiple Choice | VQA v2 | **53.20** |
 
 
 - Loss and Accuracy on VQA datasets v2
