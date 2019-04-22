@@ -57,12 +57,10 @@ class VqaDataset(data.Dataset):
 def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, max_num_ans, batch_size, num_workers):
 
     transform = {
-        'train': transforms.Compose([transforms.ToTensor(),
-                                     transforms.Normalize((0.485, 0.456, 0.406),
-                                                          (0.229, 0.224, 0.225))]),
-        'valid': transforms.Compose([transforms.ToTensor(),
-                                     transforms.Normalize((0.485, 0.456, 0.406),
-                                                          (0.229, 0.224, 0.225))])}
+        phase: transforms.Compose([transforms.ToTensor(),
+                                   transforms.Normalize((0.485, 0.456, 0.406),
+                                                        (0.229, 0.224, 0.225))]) 
+        for phase in ['train', 'valid']}
 
     vqa_dataset = {
         'train': VqaDataset(
