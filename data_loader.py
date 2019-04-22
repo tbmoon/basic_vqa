@@ -79,15 +79,11 @@ def get_loader(input_dir, input_vqa_train, input_vqa_valid, max_qst_length, max_
             transform=transform['valid'])}
 
     data_loader = {
-        'train': torch.utils.data.DataLoader(
-            dataset=vqa_dataset['train'],
+        x: torch.utils.data.DataLoader(
+            dataset=vqa_dataset[x],
             batch_size=batch_size,
             shuffle=True,
-            num_workers=num_workers),
-        'valid': torch.utils.data.DataLoader(
-            dataset=vqa_dataset['valid'],
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=num_workers)}
+            num_workers=num_workers)
+        for x in ['train', 'valid']}
 
     return data_loader
