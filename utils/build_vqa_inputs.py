@@ -6,11 +6,11 @@ import text_processing
 from collections import defaultdict
 
 
-image_dir = input_dir+'/Resized_Images/%s/'
-annotation_file = input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
-question_file = input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
+image_dir = args.input_dir+'/Resized_Images/%s/'
+annotation_file = args.input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
+question_file = args.input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
 
-vocab_answer_file = output_dir+'/vocab_answers.txt'
+vocab_answer_file = args.output_dir+'/vocab_answers.txt'
 
 answer_dict = text_processing.VocabDict(vocab_answer_file)
 valid_answer_set = set(answer_dict.word_list)
