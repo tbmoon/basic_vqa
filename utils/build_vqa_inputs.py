@@ -6,23 +6,13 @@ import text_processing
 from collections import defaultdict
 
 
-image_dir = args.input_dir+'/Resized_Images/%s/'
-annotation_file = args.input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
-question_file = args.input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
-
-vocab_answer_file = args.output_dir+'/vocab_answers.txt'
-
-answer_dict = text_processing.VocabDict(vocab_answer_file)
-valid_answer_set = set(answer_dict.word_list)
-
-
-def extract_answers(q_answers):
+def extract_answers(q_answers, valid_answer_set):
     all_answers = [answer["answer"] for answer in q_answers]
     valid_answers = [a for a in all_answers if a in valid_answer_set]
     return all_answers, valid_answers
 
 
-def vqa_processing(image_set):
+def vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, image_set):
     print('building vqa %s dataset' % image_set)
     if image_set in ['train2014', 'val2014']:
         load_answer = True
@@ -57,7 +47,7 @@ def vqa_processing(image_set):
         
         if load_answer:
             ann = qid2ann_dict[question_id]
-            all_answers, valid_answers = extract_answers(ann['answers'])
+            all_answers, valid_answers = extract_answers(ann['answers'], valid_answer_set)
             if len(valid_answers) == 0:
                 valid_answers = ['<unk>']
                 unk_ans_count += 1
@@ -67,19 +57,28 @@ def vqa_processing(image_set):
         dataset[n_q] = iminfo
     print('total %d out of %d answers are <unk>' % (unk_ans_count, len(questions)))
     return dataset
-        
+
+
+def main(args):
     
-train = vqa_processing('train2014')
-valid = vqa_processing('val2014')
-test = vqa_processing('test2015')
-test_dev = vqa_processing('test-dev2015')
+    image_dir = args.input_dir+'/Resized_Images/%s/'
+    annotation_file = args.input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
+    question_file = args.input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
 
-
-np.save(output_dir+'/train.npy', np.array(train))
-np.save(output_dir+'/valid.npy', np.array(valid))
-np.save(output_dir+'/train_valid.npy', np.array(train+valid))
-np.save(output_dir+'/test.npy', np.array(test))
-np.save(output_dir+'/test-dev.npy', np.array(test_dev))
+    vocab_answer_file = args.output_dir+'/vocab_answers.txt'
+    answer_dict = text_processing.VocabDict(vocab_answer_file)
+    valid_answer_set = set(answer_dict.word_list)    
+    
+    train = vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 'train2014')
+    valid = vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 'val2014')
+    test = vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 'test2015')
+    test_dev = vqa_processing(image_dir, annotation_file, question_file, valid_answer_set, 'test-dev2015')
+    
+    np.save(args.output_dir+'/train.npy', np.array(train))
+    np.save(args.output_dir+'/valid.npy', np.array(valid))
+    np.save(args.output_dir+'/train_valid.npy', np.array(train+valid))
+    np.save(args.output_dir+'/test.npy', np.array(test))
+    np.save(args.output_dir+'/test-dev.npy', np.array(test_dev))
 
 
 if __name__ == '__main__':
@@ -91,7 +90,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--output_dir', type=str, default='../datasets',
                         help='directory for outputs')
-
+    
     args = parser.parse_args()
 
     main(args)
