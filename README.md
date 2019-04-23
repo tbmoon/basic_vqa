@@ -27,6 +27,7 @@ $ python build_vqa_inputs.py --input_dir='../datasets' --output_dir='../datasets
 #### 4. Train model for VQA task.
 
 ```bash
+$ cd ..
 $ python train.py
 ```
 
