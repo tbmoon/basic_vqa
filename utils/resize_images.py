@@ -31,6 +31,7 @@ def resize_images(input_dir, output_dir, size):
             
             
 def main(args):
+
     input_dir = args.input_dir
     output_dir = args.output_dir
     image_size = [args.image_size, args.image_size]
@@ -38,12 +39,18 @@ def main(args):
 
     
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--input_dir', type=str, default='/run/media/hoosiki/WareHouse3/mtb/datasets/VQA/Images',
                         help='directory for input images (unresized images)')
+
     parser.add_argument('--output_dir', type=str, default='/run/media/hoosiki/WareHouse3/mtb/datasets/VQA/Resized_Images',
                         help='directory for output images (resized images)')
+
     parser.add_argument('--image_size', type=int, default=224,
                         help='size of images after resizing')
+
     args = parser.parse_args()
+
     main(args)
