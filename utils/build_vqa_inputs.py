@@ -1,17 +1,16 @@
 import numpy as np
 import json
 import os
+import argparse
 import text_processing
 from collections import defaultdict
 
 
-input_dir = '/run/media/hoosiki/WareHouse3/mtb/datasets/VQA'
-output_dir = '../datasets'
-vocab_answer_file = '../datasets/vocab_answers.txt'
+image_dir = input_dir+'/Resized_Images/%s/'
 annotation_file = input_dir+'/Annotations/v2_mscoco_%s_annotations.json'
 question_file = input_dir+'/Questions/v2_OpenEnded_mscoco_%s_questions.json'
 
-image_dir = input_dir+'/Resized_Images/%s/'
+vocab_answer_file = output_dir+'/vocab_answers.txt'
 
 answer_dict = text_processing.VocabDict(vocab_answer_file)
 valid_answer_set = set(answer_dict.word_list)
@@ -81,3 +80,18 @@ np.save(output_dir+'/valid.npy', np.array(valid))
 np.save(output_dir+'/train_valid.npy', np.array(train+valid))
 np.save(output_dir+'/test.npy', np.array(test))
 np.save(output_dir+'/test-dev.npy', np.array(test_dev))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--input_dir', type=str, default='/run/media/hoosiki/WareHouse3/mtb/datasets/VQA',
+                        help='directory for inputs')
+
+    parser.add_argument('--output_dir', type=str, default='../datasets',
+                        help='directory for outputs')
+
+    args = parser.parse_args()
+
+    main(args)
