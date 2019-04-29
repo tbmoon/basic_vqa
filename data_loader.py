@@ -4,7 +4,7 @@ import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 from PIL import Image
-from utils import text_processing
+from utils import text_helper
 
 
 class VqaDataset(data.Dataset):
@@ -12,8 +12,8 @@ class VqaDataset(data.Dataset):
     def __init__(self, input_dir, input_vqa, max_qst_length=30, max_num_ans=10, transform=None):
         self.input_dir = input_dir
         self.vqa = np.load(input_dir+'/'+input_vqa)
-        self.qst_vocab = text_processing.VocabDict(input_dir+'/vocab_questions.txt')
-        self.ans_vocab = text_processing.VocabDict(input_dir+'/vocab_answers.txt')
+        self.qst_vocab = text_helper.VocabDict(input_dir+'/vocab_questions.txt')
+        self.ans_vocab = text_helper.VocabDict(input_dir+'/vocab_answers.txt')
         self.max_qst_length = max_qst_length
         self.max_num_ans = max_num_ans
         self.load_ans = ('valid_answers' in self.vqa[0]) and (self.vqa[0]['valid_answers'] is not None)
