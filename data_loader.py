@@ -11,7 +11,7 @@ class VqaDataset(data.Dataset):
 
     def __init__(self, input_dir, input_vqa, max_qst_length=30, max_num_ans=10, transform=None):
         self.input_dir = input_dir
-        self.vqa = np.load(input_dir+'/'+input_vqa)
+        self.vqa = np.load(input_dir+'/'+input_vqa, allow_pickle=True)
         self.qst_vocab = text_helper.VocabDict(input_dir+'/vocab_questions.txt')
         self.ans_vocab = text_helper.VocabDict(input_dir+'/vocab_answers.txt')
         self.max_qst_length = max_qst_length
