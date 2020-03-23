@@ -1,6 +1,8 @@
 import os
 import argparse
 import numpy as np
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0,1,2,3"
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -8,7 +10,10 @@ from torch.optim import lr_scheduler
 from data_loader import get_loader
 from models import VqaModel
 
-
+if torch.cuda.is_available() :
+    print("cuda is True")
+else :
+    print("cuda is False")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -36,14 +41,19 @@ def main(args):
         ans_vocab_size=ans_vocab_size,
         word_embed_size=args.word_embed_size,
         num_layers=args.num_layers,
-        hidden_size=args.hidden_size).to(device)
+        hidden_size=args.hidden_size)
+    
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+    model.to(device)
+
 
     criterion = nn.CrossEntropyLoss()
 
-    params = list(model.img_encoder.fc.parameters()) \
-        + list(model.qst_encoder.parameters()) \
-        + list(model.fc1.parameters()) \
-        + list(model.fc2.parameters())
+    params = list(model.module.img_encoder.fc.parameters()) \
+        + list(model.module.qst_encoder.parameters()) \
+        + list(model.module.fc1.parameters()) \
+        + list(model.module.fc2.parameters())
 
     optimizer = optim.Adam(params, lr=args.learning_rate)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
