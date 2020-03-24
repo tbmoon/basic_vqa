@@ -42,8 +42,8 @@ class QstEncoder(nn.Module):
         super(QstEncoder, self).__init__()
         self.word2vec = nn.Embedding(qst_vocab_size, word_embed_size)
         self.tanh = nn.Tanh()
-        self.lstm = nn.LSTM(word_embed_size, hidden_size, num_layers)
-        self.fc = nn.Linear(1*num_layers*hidden_size, embed_size)     # 2 for hidden and cell states
+        self.lstm = nn.LSTM(word_embed_size, hidden_size, num_layers, bidirectional=True)
+        self.fc = nn.Linear(2*num_layers*hidden_size, embed_size)     # 2 for hidden and cell states
 
     def forward(self, question):
 
@@ -69,7 +69,8 @@ class VqaModel(nn.Module):
         super(VqaModel, self).__init__()
         self.img_encoder = ImgEncoder(embed_size)
         self.qst_encoder = QstEncoder(qst_vocab_size, word_embed_size, embed_size, num_layers, hidden_size)
-        self.tanh = nn.Tanh()
+#         self.tanh = nn.Tanh()
+        self.ReLU = nn.ReLU()
         self.dropout = nn.Dropout(0.5)
         self.fc1 = nn.Linear(embed_size, ans_vocab_size)
         self.fc2 = nn.Linear(ans_vocab_size, ans_vocab_size)
@@ -79,10 +80,10 @@ class VqaModel(nn.Module):
         img_feature = self.img_encoder(img)                     # [batch_size, embed_size]
         qst_feature = self.qst_encoder(qst)                     # [batch_size, embed_size]
         combined_feature = torch.mul(img_feature, qst_feature)  # [batch_size, embed_size]
-        combined_feature = self.tanh(combined_feature)
+        combined_feature = self.ReLU(combined_feature)
         combined_feature = self.dropout(combined_feature)
         combined_feature = self.fc1(combined_feature)           # [batch_size, ans_vocab_size=1000]
-        combined_feature = self.tanh(combined_feature)
+        combined_feature = self.ReLU(combined_feature)
         combined_feature = self.dropout(combined_feature)
         combined_feature = self.fc2(combined_feature)           # [batch_size, ans_vocab_size=1000]
 

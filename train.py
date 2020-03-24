@@ -33,7 +33,7 @@ def main(args):
 
     qst_vocab_size = data_loader['train'].dataset.qst_vocab.vocab_size
     ans_vocab_size = data_loader['train'].dataset.ans_vocab.vocab_size
-    ans_unk_idx = data_loader['train'].dataset.ans_vocab.unk2idx
+    ans_unk_idx    = data_loader['train'].dataset.ans_vocab.unk2idx
 
     model = VqaModel(
         embed_size=args.embed_size,
